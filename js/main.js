@@ -16,7 +16,7 @@
     elitetweak:   { name: 'EliteTweak (FPS Booster)',  price: 9.99 }
   };
   var DISCORD_WEBHOOK_URL = 'DISCORD_WEBHOOK_REDACTED';
-  var DISCORD_INVITE_URL = '';
+  var DISCORD_INVITE_URL = 'https://discord.gg/fV3rzcsc5K';
 
   var navToggle = document.getElementById('navToggle');
   var navLinks = document.getElementById('navLinks');
