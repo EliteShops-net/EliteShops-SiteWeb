@@ -60,12 +60,8 @@
   var modalBuy = document.getElementById('modalBuy');
   var modalBackdrop = document.getElementById('modalBackdrop');
   var modalClose = document.getElementById('modalClose');
-  var modalSuccess = document.getElementById('modalSuccess');
-  var modalJoin = document.getElementById('modalJoin');
-  var modalDone = document.getElementById('modalDone');
 
   var currentProduct = null;
-  var pendingOrder = null;
 
   function fmt(n) { return '$' + n.toFixed(2); }
 
@@ -83,7 +79,6 @@
     modalUnit.textContent = fmt(currentProduct.price);
     qtyInput.value = 1;
     modalUsername.value = '';
-    showOrderForm();
     updateTotal();
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
@@ -92,26 +87,6 @@
   function closeModal() {
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
-  }
-
-  function showOrderForm() {
-    modalSuccess.hidden = true;
-    modalBuy.hidden = false;
-    document.querySelector('.modal-tag').style.display = '';
-    modalTitle.style.display = '';
-  }
-
-  function showOrderSuccess() {
-    modalBuy.hidden = true;
-    document.querySelector('.modal-tag').style.display = 'none';
-    modalTitle.style.display = 'none';
-    modalSuccess.hidden = false;
-    var invite = (DISCORD_INVITE_URL || '').trim();
-    if (invite) {
-      modalJoin.href = invite;
-    } else {
-      modalJoin.removeAttribute('href');
-    }
   }
 
   document.querySelectorAll('.buy-btn').forEach(function (btn) {
@@ -131,52 +106,8 @@
   qtyInput.addEventListener('input', updateTotal);
   modalClose.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', closeModal);
-  modalDone.addEventListener('click', closeModal);
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeModal();
-  });
-
-  function postOrder() {
-    if (!pendingOrder || pendingOrder.sent) return;
-    pendingOrder.sent = true;
-
-    var payload = {
-      username: 'ELITE SHOPS Store',
-      embeds: [{
-        title: 'New purchase request',
-        color: 11141290,
-        fields: [
-          { name: 'Customer', value: pendingOrder.username || 'Not provided', inline: true },
-          { name: 'Product', value: pendingOrder.name, inline: true },
-          { name: 'Quantity', value: String(pendingOrder.qty), inline: true },
-          { name: 'Total', value: fmt(pendingOrder.total), inline: false }
-        ],
-        timestamp: new Date().toISOString()
-      }]
-    };
-
-    fetch(DISCORD_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(function (res) {
-      if (!res.ok) {
-        pendingOrder.sent = false;
-        showToast('Order delivery failed (HTTP ' + res.status + ')');
-      }
-    }).catch(function () {
-      pendingOrder.sent = false;
-      showToast('Order could not be sent - check your connection');
-    });
-  }
-
-  modalJoin.addEventListener('click', function () {
-    var invite = (DISCORD_INVITE_URL || '').trim();
-    if (!invite) {
-      showToast('Discord invite not configured - paste it in js/main.js');
-      return;
-    }
-    postOrder();
   });
 
   modalBuy.addEventListener('click', function () {
@@ -191,15 +122,42 @@
       showToast('Enter your Discord username to continue');
       return;
     }
-    pendingOrder = {
-      name: currentProduct.name,
-      price: currentProduct.price,
-      qty: qty,
-      total: currentProduct.price * qty,
-      username: username,
-      sent: false
+    var payload = {
+      username: 'ELITE SHOPS Store',
+      embeds: [{
+        title: 'New purchase request',
+        color: 11141290,
+        fields: [
+          { name: 'Customer', value: username, inline: true },
+          { name: 'Product', value: currentProduct.name, inline: true },
+          { name: 'Quantity', value: String(qty), inline: true },
+          { name: 'Total', value: fmt(currentProduct.price * qty), inline: false }
+        ],
+        timestamp: new Date().toISOString()
+      }]
     };
-    showOrderSuccess();
+
+    modalBuy.disabled = true;
+    modalBuy.textContent = 'Sending...';
+
+    fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      modalBuy.disabled = false;
+      modalBuy.textContent = 'Pay';
+      if (res.ok) {
+        closeModal();
+        showToast('Order sent! We will contact you on Discord.');
+      } else {
+        showToast('Delivery failed (HTTP ' + res.status + ') - try again');
+      }
+    }).catch(function () {
+      modalBuy.disabled = false;
+      modalBuy.textContent = 'Pay';
+      showToast('Could not send the order - check your connection');
+    });
   });
 
   /* ============================================================
