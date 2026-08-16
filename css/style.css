@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   ELITE SHOPS â€” Cyberpunk Neon Theme
+   ELITE SHOPS — Cyberpunk Neon Theme
    ============================================================ */
 :root{
   --bg:            #0A0A0E;
@@ -399,7 +399,7 @@ ul{ list-style:none; }
   font-size:15px;
 }
 .feature-list li::before{
-  content:"âœ“";
+  content:"✓";
   color:var(--cyan);
   font-weight:700;
   font-size:14px;
@@ -785,6 +785,52 @@ ul{ list-style:none; }
   font-size:13.5px;
   font-weight:500;
 }
+
+.modal-success{
+  margin-top:22px;
+  padding-top:24px;
+  border-top:1px dashed var(--border);
+  text-align:center;
+}
+.success-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:58px; height:58px;
+  margin-bottom:14px;
+  border-radius:50%;
+  background:rgba(34,211,238,.1);
+  border:1px solid rgba(34,211,238,.5);
+  color:var(--cyan);
+  font-size:26px;
+  font-weight:700;
+  box-shadow:0 0 26px rgba(34,211,238,.35);
+}
+.success-title{
+  font-family:var(--font-head);
+  font-size:19px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--cyan);
+  text-shadow:0 0 14px rgba(34,211,238,.5);
+  margin-bottom:8px;
+}
+.success-text{
+  color:var(--muted);
+  font-size:15px;
+  font-weight:500;
+  margin-bottom:20px;
+}
+.modal-join{ width:100%; justify-content:center; }
+.modal-done{
+  width:100%;
+  justify-content:center;
+  margin-top:12px;
+  color:var(--muted);
+  border-color:var(--border);
+}
+.modal-done:hover{ color:var(--text); border-color:var(--cyan); }
 
 /* ============================================================
    RESPONSIVE

@@ -80,6 +80,7 @@
         <article class="product-card">
           <div class="product-media">
             <span class="ribbon ribbon-purple">Best Seller</span>
+            <span class="tag-gold">33% OFF</span>
             <img src="assets/images/dashboard-preview.png"
                  onerror="this.onerror=null;this.src='assets/images/dashboard-preview.svg'"
                  alt="EliteCleaner dashboard preview" class="product-img">
@@ -106,6 +107,7 @@
         <article class="product-card">
           <div class="product-media">
             <span class="ribbon ribbon-cyan">Popular</span>
+            <span class="tag-gold">25% OFF</span>
             <img src="assets/images/macro-interface.png"
                  onerror="this.onerror=null;this.src='assets/images/macro-interface.svg'"
                  alt="Icarus macro interface" class="product-img">
@@ -291,6 +293,14 @@
       <div class="modal-total"><span>Total</span><span id="modalTotal">$9.99</span></div>
       <button class="btn btn-glow btn-lg modal-buy" id="modalBuy">Buy</button>
       <p class="modal-note">Your order is sent to us instantly — we contact you to complete delivery.</p>
+
+      <div class="modal-success" id="modalSuccess" hidden>
+        <span class="success-icon">✓</span>
+        <h3 class="success-title">Order sent!</h3>
+        <p class="success-text">Join our Discord server — that's where we handle your delivery and follow-up.</p>
+        <a class="btn btn-glow btn-lg modal-join" id="modalJoin" target="_blank" rel="noopener">Join the Discord</a>
+        <button class="btn btn-outline modal-done" id="modalDone">Done</button>
+      </div>
     </div>
   </div>
 

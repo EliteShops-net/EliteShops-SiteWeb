@@ -1,14 +1,14 @@
-﻿/* ELITE SHOPS â€” interactions */
+﻿/* ELITE SHOPS — interactions */
 (function () {
   'use strict';
 
   /* ============================================================
      STORE CONFIG
      1. PRODUCTS: name + unit price per product key
-     2. DISCORD_WEBHOOK_URL: paste your Discord webhook URL here
-        (Discord -> Server Settings -> Integrations -> Webhooks
-         -> New Webhook -> Copy Webhook URL)
-        Every order is posted there and pings the channel.
+     2. DISCORD_WEBHOOK_URL: paste the webhook URL of your server
+        Orders are posted there with product, quantity & total.
+     3. DISCORD_INVITE_URL: invite link customers use to join
+        your Discord server after buying (delivery & follow-up).
      ============================================================ */
   var PRODUCTS = {
     elitecleaner: { name: 'EliteCleaner',              price: 9.99 },
@@ -16,6 +16,7 @@
     elitetweak:   { name: 'EliteTweak (FPS Booster)',  price: 9.99 }
   };
   var DISCORD_WEBHOOK_URL = 'DISCORD_WEBHOOK_REDACTED';
+  var DISCORD_INVITE_URL = '';
 
   var navToggle = document.getElementById('navToggle');
   var navLinks = document.getElementById('navLinks');
@@ -45,6 +46,9 @@
     }, 3200);
   }
 
+  /* ============================================================
+     ORDER MODAL (quantity + total + Discord order + join)
+     ============================================================ */
   var modal = document.getElementById('checkoutModal');
   var modalTitle = document.getElementById('modalTitle');
   var modalUnit = document.getElementById('modalUnit');
@@ -55,6 +59,9 @@
   var modalBuy = document.getElementById('modalBuy');
   var modalBackdrop = document.getElementById('modalBackdrop');
   var modalClose = document.getElementById('modalClose');
+  var modalSuccess = document.getElementById('modalSuccess');
+  var modalJoin = document.getElementById('modalJoin');
+  var modalDone = document.getElementById('modalDone');
 
   var currentProduct = null;
 
@@ -73,6 +80,7 @@
     modalTitle.textContent = currentProduct.name;
     modalUnit.textContent = fmt(currentProduct.price);
     qtyInput.value = 1;
+    showOrderForm();
     updateTotal();
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
@@ -81,6 +89,26 @@
   function closeModal() {
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function showOrderForm() {
+    modalSuccess.hidden = true;
+    modalBuy.hidden = false;
+    document.querySelector('.modal-tag').style.display = '';
+    modalTitle.style.display = '';
+  }
+
+  function showOrderSuccess() {
+    modalBuy.hidden = true;
+    document.querySelector('.modal-tag').style.display = 'none';
+    modalTitle.style.display = 'none';
+    modalSuccess.hidden = false;
+    var invite = (DISCORD_INVITE_URL || '').trim();
+    if (invite) {
+      modalJoin.href = invite;
+    } else {
+      modalJoin.removeAttribute('href');
+    }
   }
 
   document.querySelectorAll('.buy-btn').forEach(function (btn) {
@@ -100,14 +128,22 @@
   qtyInput.addEventListener('input', updateTotal);
   modalClose.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', closeModal);
+  modalDone.addEventListener('click', closeModal);
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeModal();
+  });
+
+  modalJoin.addEventListener('click', function () {
+    var invite = (DISCORD_INVITE_URL || '').trim();
+    if (!invite) {
+      showToast('Discord invite not configured - paste it in js/main.js');
+    }
   });
 
   modalBuy.addEventListener('click', function () {
     if (!currentProduct) return;
     if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.indexOf('PASTE') !== -1) {
-      showToast('Discord webhook not configured â€” paste it in js/main.js');
+      showToast('Discord webhook not configured - paste it in js/main.js');
       return;
     }
     var qty = Math.max(1, Math.min(99, parseInt(qtyInput.value, 10) || 1));
@@ -116,7 +152,7 @@
     var payload = {
       username: 'ELITE SHOPS Store',
       embeds: [{
-        title: 'ðŸ›’ New purchase request',
+        title: 'New purchase request',
         color: 11141290,
         fields: [
           { name: 'Product', value: currentProduct.name, inline: true },
@@ -138,18 +174,20 @@
       modalBuy.disabled = false;
       modalBuy.textContent = 'Buy';
       if (res.ok) {
-        closeModal();
-        showToast('ðŸŽ‰ Order sent! We will contact you shortly.');
+        showOrderSuccess();
       } else {
-        showToast('Delivery failed (HTTP ' + res.status + ') â€” try again or contact us');
+        showToast('Delivery failed (HTTP ' + res.status + ') - try again or contact us');
       }
     }).catch(function () {
       modalBuy.disabled = false;
       modalBuy.textContent = 'Buy';
-      showToast('Could not send the order â€” check your connection');
+      showToast('Could not send the order - check your connection');
     });
   });
 
+  /* ============================================================
+     REVEAL + NAVBAR SHADOW
+     ============================================================ */
   var revealEls = document.querySelectorAll('.product-card, .trust-card, .discord-inner, .hero-logo-wrap');
   revealEls.forEach(function (el) { el.classList.add('reveal'); });
 
