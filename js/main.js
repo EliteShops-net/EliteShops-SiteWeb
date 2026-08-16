@@ -64,6 +64,7 @@
   var modalDone = document.getElementById('modalDone');
 
   var currentProduct = null;
+  var pendingOrder = null;
 
   function fmt(n) { return '$' + n.toFixed(2); }
 
@@ -133,11 +134,46 @@
     if (e.key === 'Escape') closeModal();
   });
 
+  function postOrder() {
+    if (!pendingOrder || pendingOrder.sent) return;
+    pendingOrder.sent = true;
+
+    var payload = {
+      username: 'ELITE SHOPS Store',
+      embeds: [{
+        title: 'New purchase request',
+        color: 11141290,
+        fields: [
+          { name: 'Product', value: pendingOrder.name, inline: true },
+          { name: 'Quantity', value: String(pendingOrder.qty), inline: true },
+          { name: 'Total', value: fmt(pendingOrder.total), inline: true }
+        ],
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (!res.ok) {
+        pendingOrder.sent = false;
+        showToast('Order delivery failed (HTTP ' + res.status + ')');
+      }
+    }).catch(function () {
+      pendingOrder.sent = false;
+      showToast('Order could not be sent - check your connection');
+    });
+  }
+
   modalJoin.addEventListener('click', function () {
     var invite = (DISCORD_INVITE_URL || '').trim();
     if (!invite) {
       showToast('Discord invite not configured - paste it in js/main.js');
+      return;
     }
+    postOrder();
   });
 
   modalBuy.addEventListener('click', function () {
@@ -147,42 +183,14 @@
       return;
     }
     var qty = Math.max(1, Math.min(99, parseInt(qtyInput.value, 10) || 1));
-    var total = currentProduct.price * qty;
-
-    var payload = {
-      username: 'ELITE SHOPS Store',
-      embeds: [{
-        title: 'New purchase request',
-        color: 11141290,
-        fields: [
-          { name: 'Product', value: currentProduct.name, inline: true },
-          { name: 'Quantity', value: String(qty), inline: true },
-          { name: 'Total', value: fmt(total), inline: true }
-        ],
-        timestamp: new Date().toISOString()
-      }]
+    pendingOrder = {
+      name: currentProduct.name,
+      price: currentProduct.price,
+      qty: qty,
+      total: currentProduct.price * qty,
+      sent: false
     };
-
-    modalBuy.disabled = true;
-    modalBuy.textContent = 'Sending...';
-
-    fetch(DISCORD_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(function (res) {
-      modalBuy.disabled = false;
-      modalBuy.textContent = 'Buy';
-      if (res.ok) {
-        showOrderSuccess();
-      } else {
-        showToast('Delivery failed (HTTP ' + res.status + ') - try again or contact us');
-      }
-    }).catch(function () {
-      modalBuy.disabled = false;
-      modalBuy.textContent = 'Buy';
-      showToast('Could not send the order - check your connection');
-    });
+    showOrderSuccess();
   });
 
   /* ============================================================
