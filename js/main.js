@@ -12,7 +12,7 @@
      ============================================================ */
   var PRODUCTS = {
     elitecleaner: { name: 'EliteCleaner',              price: 9.99 },
-    icarus:       { name: 'Icarus Macro Maker',        price: 14.99 },
+    ekitemacro:   { name: 'ekitemacro',                price: 9.99 },
     elitetweak:   { name: 'EliteTweak (FPS Booster)',  price: 9.99 }
   };
   var DISCORD_WEBHOOK_URL = 'DISCORD_WEBHOOK_REDACTED';
@@ -56,6 +56,7 @@
   var qtyInput = document.getElementById('qtyInput');
   var qtyMinus = document.getElementById('qtyMinus');
   var qtyPlus = document.getElementById('qtyPlus');
+  var modalUsername = document.getElementById('modalUsername');
   var modalBuy = document.getElementById('modalBuy');
   var modalBackdrop = document.getElementById('modalBackdrop');
   var modalClose = document.getElementById('modalClose');
@@ -81,6 +82,7 @@
     modalTitle.textContent = currentProduct.name;
     modalUnit.textContent = fmt(currentProduct.price);
     qtyInput.value = 1;
+    modalUsername.value = '';
     showOrderForm();
     updateTotal();
     modal.classList.add('open');
@@ -144,9 +146,10 @@
         title: 'New purchase request',
         color: 11141290,
         fields: [
+          { name: 'Customer', value: pendingOrder.username || 'Not provided', inline: true },
           { name: 'Product', value: pendingOrder.name, inline: true },
           { name: 'Quantity', value: String(pendingOrder.qty), inline: true },
-          { name: 'Total', value: fmt(pendingOrder.total), inline: true }
+          { name: 'Total', value: fmt(pendingOrder.total), inline: false }
         ],
         timestamp: new Date().toISOString()
       }]
@@ -183,11 +186,17 @@
       return;
     }
     var qty = Math.max(1, Math.min(99, parseInt(qtyInput.value, 10) || 1));
+    var username = (modalUsername.value || '').trim().replace(/^@/, '');
+    if (!username) {
+      showToast('Enter your Discord username to continue');
+      return;
+    }
     pendingOrder = {
       name: currentProduct.name,
       price: currentProduct.price,
       qty: qty,
       total: currentProduct.price * qty,
+      username: username,
       sent: false
     };
     showOrderSuccess();
