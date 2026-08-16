@@ -1,4 +1,4 @@
-/* ELITE SHOPS — interactions */
+﻿/* ELITE SHOPS â€” interactions */
 (function () {
   'use strict';
 
@@ -15,7 +15,7 @@
     icarus:       { name: 'Icarus Macro Maker',        price: 14.99 },
     elitetweak:   { name: 'EliteTweak (FPS Booster)',  price: 9.99 }
   };
-  var DISCORD_WEBHOOK_URL = '';
+  var DISCORD_WEBHOOK_URL = 'DISCORD_WEBHOOK_REDACTED';
 
   var navToggle = document.getElementById('navToggle');
   var navLinks = document.getElementById('navLinks');
@@ -107,7 +107,7 @@
   modalBuy.addEventListener('click', function () {
     if (!currentProduct) return;
     if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.indexOf('PASTE') !== -1) {
-      showToast('Discord webhook not configured — paste it in js/main.js');
+      showToast('Discord webhook not configured â€” paste it in js/main.js');
       return;
     }
     var qty = Math.max(1, Math.min(99, parseInt(qtyInput.value, 10) || 1));
@@ -116,7 +116,7 @@
     var payload = {
       username: 'ELITE SHOPS Store',
       embeds: [{
-        title: '🛒 New purchase request',
+        title: 'ðŸ›’ New purchase request',
         color: 11141290,
         fields: [
           { name: 'Product', value: currentProduct.name, inline: true },
@@ -139,14 +139,14 @@
       modalBuy.textContent = 'Buy';
       if (res.ok) {
         closeModal();
-        showToast('🎉 Order sent! We will contact you shortly.');
+        showToast('ðŸŽ‰ Order sent! We will contact you shortly.');
       } else {
-        showToast('Delivery failed (HTTP ' + res.status + ') — try again or contact us');
+        showToast('Delivery failed (HTTP ' + res.status + ') â€” try again or contact us');
       }
     }).catch(function () {
       modalBuy.disabled = false;
       modalBuy.textContent = 'Buy';
-      showToast('Could not send the order — check your connection');
+      showToast('Could not send the order â€” check your connection');
     });
   });
 
