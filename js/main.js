@@ -19,7 +19,7 @@
      Worker (worker.js). The site only talks to the Worker, so the webhook
      URL never appears in public code. */
   var DISCORD_WEBHOOK_URL = '';
-  var DISCORD_INVITE_URL = 'https://discord.gg/6gjzHZteXV';
+  var DISCORD_INVITE_URL = 'https://discord.gg/p57ChfuEvF';
   var WORKER_URL = 'https://eliteshops-orders.adnanettouahri01-37d.workers.dev';
   var WORKER_SECRET = '2c401b8b460c0613cfddcc175c1434fde54120358d887b65';
 
