@@ -15,15 +15,12 @@
     ekitemacro:   { name: 'elitemacro',                price: 9.99 },
     elitetweak:   { name: 'EliteTweak (FPS Booster)',  price: 9.99 }
   };
-  var DISCORD_WEBHOOK_URL = 'DISCORD_WEBHOOK_REDACTED';
+  /* Secure order relay - the Discord webhook is hidden in the Cloudflare
+     Worker (worker.js). The site only talks to the Worker, so the webhook
+     URL never appears in public code. */
+  var DISCORD_WEBHOOK_URL = '';
   var DISCORD_INVITE_URL = 'https://discord.gg/6gjzHZteXV';
-
-  /* Secure order relay (recommended - hides the Discord webhook).
-     Set WORKER_URL to your deployed Cloudflare Worker, and WORKER_SECRET
-     to the exact token that matches the Worker's ORDERS_SECRET secret.
-     Once set, orders go through the Worker and the webhook stays hidden.
-     Leave WORKER_URL empty to keep sending straight to Discord. */
-  var WORKER_URL = '';
+  var WORKER_URL = 'https://eliteshops-orders.adnanettouahri01-37d.workers.dev';
   var WORKER_SECRET = '2c401b8b460c0613cfddcc175c1434fde54120358d887b65';
 
   var navToggle = document.getElementById('navToggle');
@@ -120,8 +117,8 @@
 
   modalBuy.addEventListener('click', function () {
     if (!currentProduct) return;
-    if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.indexOf('PASTE') !== -1) {
-      showToast('Discord webhook not configured - paste it in js/main.js');
+    if (!WORKER_URL) {
+      showToast('Order relay not configured - set WORKER_URL in js/main.js');
       return;
     }
     var qty = Math.max(1, Math.min(99, parseInt(qtyInput.value, 10) || 1));
@@ -131,48 +128,21 @@
       return;
     }
 
-    var useWorker = !!WORKER_URL;
-    var url;
-    var headers;
-    var body;
-    if (useWorker) {
-      url = WORKER_URL;
-      headers = {
+    modalBuy.disabled = true;
+    modalBuy.textContent = 'Sending...';
+
+    fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + WORKER_SECRET
-      };
-      body = JSON.stringify({
+      },
+      body: JSON.stringify({
         username: username,
         product: currentProduct.name,
         qty: qty,
         total: currentProduct.price * qty
-      });
-    } else {
-      url = DISCORD_WEBHOOK_URL;
-      headers = { 'Content-Type': 'application/json' };
-      body = JSON.stringify({
-        username: 'ELITE SHOPS Store',
-        embeds: [{
-          title: 'New purchase request',
-          color: 11141290,
-          fields: [
-            { name: 'Customer', value: username, inline: true },
-            { name: 'Product', value: currentProduct.name, inline: true },
-            { name: 'Quantity', value: String(qty), inline: true },
-            { name: 'Total', value: fmt(currentProduct.price * qty), inline: false }
-          ],
-          timestamp: new Date().toISOString()
-        }]
-      });
-    }
-
-    modalBuy.disabled = true;
-    modalBuy.textContent = 'Sending...';
-
-    fetch(url, {
-      method: 'POST',
-      headers: headers,
-      body: body
+      })
     }).then(function (res) {
       modalBuy.disabled = false;
       modalBuy.textContent = 'Pay';

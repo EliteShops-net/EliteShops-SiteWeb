@@ -1,0 +1,7 @@
+name = "eliteshops-orders"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Secrets are added separately with `npx wrangler secret put`
+#   DISCORD_WEBHOOK_URL
+#   ORDERS_SECRET

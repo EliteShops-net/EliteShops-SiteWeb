@@ -1,0 +1,15 @@
+# Local Cloudflare credentials - NEVER commit
+.wrangler/
+
+# Cloudflare wrangler generated
+node_modules/
+wrangler.local.toml
+
+# Node
+package.json
+package-lock.json
+npm-debug.log*
+
+# Misc
+.DS_Store
+Thumbs.db
