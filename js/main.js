@@ -18,6 +18,14 @@
   var DISCORD_WEBHOOK_URL = 'DISCORD_WEBHOOK_REDACTED';
   var DISCORD_INVITE_URL = 'https://discord.gg/6gjzHZteXV';
 
+  /* Secure order relay (recommended - hides the Discord webhook).
+     Set WORKER_URL to your deployed Cloudflare Worker, and WORKER_SECRET
+     to the exact token that matches the Worker's ORDERS_SECRET secret.
+     Once set, orders go through the Worker and the webhook stays hidden.
+     Leave WORKER_URL empty to keep sending straight to Discord. */
+  var WORKER_URL = '';
+  var WORKER_SECRET = '2c401b8b460c0613cfddcc175c1434fde54120358d887b65';
+
   var navToggle = document.getElementById('navToggle');
   var navLinks = document.getElementById('navLinks');
 
@@ -122,28 +130,49 @@
       showToast('Enter your Discord username to continue');
       return;
     }
-    var payload = {
-      username: 'ELITE SHOPS Store',
-      embeds: [{
-        title: 'New purchase request',
-        color: 11141290,
-        fields: [
-          { name: 'Customer', value: username, inline: true },
-          { name: 'Product', value: currentProduct.name, inline: true },
-          { name: 'Quantity', value: String(qty), inline: true },
-          { name: 'Total', value: fmt(currentProduct.price * qty), inline: false }
-        ],
-        timestamp: new Date().toISOString()
-      }]
-    };
+
+    var useWorker = !!WORKER_URL;
+    var url;
+    var headers;
+    var body;
+    if (useWorker) {
+      url = WORKER_URL;
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + WORKER_SECRET
+      };
+      body = JSON.stringify({
+        username: username,
+        product: currentProduct.name,
+        qty: qty,
+        total: currentProduct.price * qty
+      });
+    } else {
+      url = DISCORD_WEBHOOK_URL;
+      headers = { 'Content-Type': 'application/json' };
+      body = JSON.stringify({
+        username: 'ELITE SHOPS Store',
+        embeds: [{
+          title: 'New purchase request',
+          color: 11141290,
+          fields: [
+            { name: 'Customer', value: username, inline: true },
+            { name: 'Product', value: currentProduct.name, inline: true },
+            { name: 'Quantity', value: String(qty), inline: true },
+            { name: 'Total', value: fmt(currentProduct.price * qty), inline: false }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      });
+    }
 
     modalBuy.disabled = true;
     modalBuy.textContent = 'Sending...';
 
-    fetch(DISCORD_WEBHOOK_URL, {
+    fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: headers,
+      body: body
     }).then(function (res) {
       modalBuy.disabled = false;
       modalBuy.textContent = 'Pay';
